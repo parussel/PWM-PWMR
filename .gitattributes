@@ -1,0 +1,2 @@
+# FHEM module files are distributed with their verified LF byte sequence.
+FHEM/*.pm -text
