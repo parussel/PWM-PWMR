@@ -1,0 +1,7 @@
+2026-10-20 PWM/PWMR 1.0.0-153er
+- Erste öffentliche 153er-netz.de-Version der erweiterten PWM/PWMR-Module.
+- Enthält feinere Solltemperatur-Schritte, Fensterkontakt-Unterstützung,
+  Ventil-Service-Override und robusten D-Pufferschutz.
+- Der readingsProxy-Schaltzustandsabgleich bestätigt Wechsel erst nach
+  passender Rückmeldung des Readings state.
+- Die Moduldateien 93_PWMR.pm und 94_PWM.pm werden gemeinsam verteilt.
