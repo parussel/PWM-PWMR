@@ -40,10 +40,15 @@
 # 28.12.20 GA fix maxOffTime; maxOffTimeApply is now only set if no heating is required
 #
 # ---------------------------------------------------------------------------
-# Erweiterungen (Fork, Oktober 2026)
+# Erweiterungen 2026 – Frank Parussel / 153er-netz.de
+# Kompatible Community-Erweiterung; die ursprünglichen Autorenhinweise bleiben
+# unverändert. Projekt: https://github.com/parussel/PWM-PWMR
 # 18.10.26 support for attribute valveOverride of the PWMR objects:
-#             while the override is active the actor is switched on immediately
+#             while the override is active the actor is switched on exactly once
 #             and the regulation of this room is out of operation
+# 18.10.26 an open window forces the actor off before valve protection,
+#             maxOffTime and regular pulse decisions; an active valve protection
+#             is thereby ended and cannot switch the actor back on
 # ---------------------------------------------------------------------------
 # 31.01.21 GA add attribute maxOffTimeMode (max, 1, 2, 3)
 # 01.02.21 GA fix move reading maxOffTimeCalculation into an attribute and internal values

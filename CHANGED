@@ -1,3 +1,7 @@
+2026-10-20 PWM/PWMR 1.0.1-153er
+- Modulköpfe um Herkunfts- und Änderungshinweise für die 153er-netz.de-
+  Erweiterungen ergänzt.
+
 2026-10-20 PWM/PWMR 1.0.0-153er
 - Erste öffentliche 153er-netz.de-Version der erweiterten PWM/PWMR-Module.
 - Enthält feinere Solltemperatur-Schritte, Fensterkontakt-Unterstützung,

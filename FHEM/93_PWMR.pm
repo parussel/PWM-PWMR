@@ -66,17 +66,20 @@
 # 13.03.22 GA fix handle error in attr desiredTempFrom when device is not yet defined during startup 
 #
 # ---------------------------------------------------------------------------
-# Erweiterungen (Fork, Oktober 2026)
+# Erweiterungen 2026 – Frank Parussel / 153er-netz.de
+# Kompatible Community-Erweiterung; die ursprünglichen Autorenhinweise bleiben
+# unverändert. Projekt: https://github.com/parussel/PWM-PWMR
 # 20.10.26 do not acknowledge a readingsProxy switch without observed state;
 #             a safety setFn may refuse dispatch while returning undef.
-# 18.10.26 add attribute tempStep: selectable resolution of desired-temp (0 = 0.5 K, 1 = 0.1 K)
+# 18.10.26 add attribute tempStep: selectable resolution of desired-temp
+#             (0 = 0.5 K, 1 = 0.1 K)
 # 18.10.26 add attribute window: simple window contact configuration
 #             <device>:<activeVal>[:<inactiveVal>] or
 #             <device>:<reading>:<activeVal>:<inactiveVal> (comma separated)
-# 18.10.26 add attribute valveOverride: service override, switches the actor directly
-#             (one to one) as long as the device shows the active value
-# 18.10.26 fix open window now forces the pulse to 0 instead of calculating a pulse
-#             against tempFrostProtect
+# 18.10.26 add attribute valveOverride: service override, switches the actor
+#             directly (one to one) as long as the device shows the active value
+# 18.10.26 fix open window now forces the pulse to 0 instead of calculating a
+#             pulse against tempFrostProtect
 # 18.10.26 add reading "window" (open|closed) and "valveOverride" (on|off) for
 #             both attributes
 # ---------------------------------------------------------------------------
