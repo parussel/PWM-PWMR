@@ -11,7 +11,7 @@ und Raumregelung.
 
 Die ursprünglichen Autoren- und Herkunftshinweise bleiben in beiden
 Moduldateien erhalten. Die Erweiterungen von 2026 werden von Frank Parussel /
-[153er-netz.de](https://153er-netz.de/seiten/entwicklung.html) gepflegt.
+[153er-netz.de](https://153er-netz.de/seiten/entwicklung/fhem.html) gepflegt.
 
 ## Funktionsumfang
 
