@@ -1,10 +1,14 @@
-2026-11-21 PWM/PWMR 1.1.1-153er
+2026-11-21 PWM/PWMR/PWMK 1.1.1-153er
+- Das neue Ergänzungsmodul wurde noch am Tag der Rohveröffentlichung von
+  98_FBHKeepAlive.pm / FBHKeepAlive in 95_PWMK.pm / PWMK umbenannt. Der
+  ausgeschriebene Name lautet „PWM KeepAlive“; eine eigene Kurzanleitung
+  beschreibt ausschließlich die Umstellung der kurzzeitig verfügbaren Rohfassung.
 - Gruppenkoordination an die endgültige PWM-Auswahl verlegt; eine kurze
   Reservierung und der gemeldete Aktorzustand verhindern parallele Pulse.
 - Nur nach Beginn der aktiven Filterphase gemessene Rückläufe werden gelernt.
 - Ungültige Raum-/Rücklaufwerte, zu kurze Pulse und fehlende Providerfunktion
   führen mit eindeutiger Diagnose auf das statische maxOffTime zurück.
-- FBHKeepAlive speichert den individuellen Lernstand nach jedem gültigen
+- PWMK speichert den individuellen Lernstand nach jedem gültigen
   Zyklus atomar und lädt ihn nach einem Neustart validiert wieder ein.
 - Vollständige learningEvent-Readings ermöglichen getrennte EG-/OG-
   Langzeitprotokolle; Hilfe und Installationsdokumentation erklären jetzt das
@@ -24,8 +28,8 @@
 - Der readingsProxy-Schaltzustandsabgleich bestätigt Wechsel erst nach
   passender Rückmeldung des Readings state.
 - Die Moduldateien 93_PWMR.pm und 94_PWM.pm werden gemeinsam verteilt.
-2026-11-21 PWM/PWMR 1.1.0-153er
-- Neues optionales Modul 98_FBHKeepAlive.pm für dynamische, rücklaufbasierte
+2026-11-21 PWM/PWMR/PWMK 1.1.0-153er (Rohentwicklung, ersetzt)
+- Erstentwurf des optionalen Erhaltungspulsmoduls für dynamische, rücklaufbasierte
   FBH-Erhaltungspulsabstände mit fester Mindestpulsdauer.
 - Shadow-/Aktivbetrieb, begrenztes Lernen, Diagnose, Freeze/Reset, generische
   Mehrinstanzfähigkeit und gruppenweite Pulskoordination ergänzt.

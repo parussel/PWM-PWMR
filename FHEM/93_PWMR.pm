@@ -82,7 +82,7 @@
 #             pulse against tempFrostProtect
 # 18.10.26 add reading "window" (open|closed) and "valveOverride" (on|off) for
 #             both attributes
-# 21.11.26 add optional FBHKeepAlive provider and filtered floor-return mapping;
+# 21.11.26 add optional PWMK provider and filtered floor-return mapping;
 #             static maxOffTime remains the automatic fallback
 # 21.11.26 expose provider-function-missing when a configured optional provider
 #             cannot be called; static maxOffTime remains active
@@ -1432,11 +1432,11 @@ PWMR_ReadRoom(@)
     # is fresh, valid and active.  The configured static values above remain
     # untouched and are therefore the fail-safe fallback.
     my $keepAliveProvider = AttrVal($name, 'floorKeepAliveProvider', '');
-    if ($keepAliveProvider ne '' && defined(&FBHKeepAlive_GetRoomDecision)) {
+    if ($keepAliveProvider ne '' && defined(&PWMK_GetRoomDecision)) {
       my $offForDecision = 0;
       $offForDecision = int((time() - $room->{READINGS}{lastswitch}{VAL}) / 60)
         if $room->{READINGS}{actorState}{VAL} eq 'off';
-      my $decision = FBHKeepAlive_GetRoomDecision($keepAliveProvider, $name, $offForDecision);
+      my $decision = PWMK_GetRoomDecision($keepAliveProvider, $name, $offForDecision);
       if ($decision->{valid}) {
         $maxOffTime       = $decision->{interval};
         $maxOffTimePeriod = $decision->{duration};

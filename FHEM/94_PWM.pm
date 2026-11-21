@@ -49,7 +49,7 @@
 # 18.10.26 an open window forces the actor off before valve protection,
 #             maxOffTime and regular pulse decisions; an active valve protection
 #             is thereby ended and cannot switch the actor back on
-# 21.11.26 claim coordinated FBHKeepAlive pulses only at the final PWM selector;
+# 21.11.26 claim coordinated PWMK pulses only at the final PWM selector;
 #             both full-due and half-due selection paths enforce the claim
 # ---------------------------------------------------------------------------
 # 31.01.21 GA add attribute maxOffTimeMode (max, 1, 2, 3)
@@ -335,7 +335,7 @@ PWM_Calculate($)
       if ($RoomsMaxOffTimeProtect{$d} eq "on_mop") {
   
         if ($maxOffTimeCnt < int($maxOffTimeMode)) {
-          if (defined(&FBHKeepAlive_ClaimPulse) && !FBHKeepAlive_ClaimPulse($d,time())) {
+          if (defined(&PWMK_ClaimPulse) && !PWMK_ClaimPulse($d,time())) {
             $RoomsToStayOff{$d} = 1;
             $RoomsPulses{$d}    = 0;
           } else {
@@ -368,7 +368,7 @@ PWM_Calculate($)
         # on_mop_maybe may only be set if c_maxOffTimeMode > 1
         if (($RoomsMaxOffTimeProtect_on + $RoomsMaxOffTimeProtect_stay_on > 0) 
   	  and ($maxOffTimeCnt < int($maxOffTimeMode))) {
-          if (defined(&FBHKeepAlive_ClaimPulse) && !FBHKeepAlive_ClaimPulse($d,time())) {
+          if (defined(&PWMK_ClaimPulse) && !PWMK_ClaimPulse($d,time())) {
             $RoomsToStayOff{$d} = 1;
             $RoomsPulses{$d}    = 0;
           } else {

@@ -9,7 +9,7 @@ Die im Oktober 2026 ergänzten Funktionen und die veröffentlichte
 `readingsProxy`-Korrektur werden von Frank Parussel /
 [153er-netz.de](https://153er-netz.de/seiten/entwicklung/fhem.html) gepflegt.
 Hierzu gehört seit November 2026 auch das eigenständige Ergänzungsmodul
-`98_FBHKeepAlive.pm`, das mit PWM/PWMR und TempReadingFilter zusammenarbeitet,
+`95_PWMK.pm` („PWM KeepAlive“), das mit PWM/PWMR und TempReadingFilter zusammenarbeitet,
 ohne deren grundlegende Regelaufgabe zu ersetzen.
 
 Dieses Projekt ist eine kompatible Community-Erweiterung. Es ist nicht

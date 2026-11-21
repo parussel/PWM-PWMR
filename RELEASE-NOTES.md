@@ -32,7 +32,12 @@ Regelparameter, Solltemperaturen, PWM-Taktung und vorhandene Sperren werden
 durch diesen Fix nicht geändert. Der Abgleich bestätigt ausschließlich den
 gemeldeten Softwarezustand, nicht die mechanische Ventilposition oder den
 tatsächlichen Durchfluss.
-# 1.1.1-153er – 2026-11-21
+# 1.1.1-153er – 2026-11-21 – PWM, PWMR und PWMK
+
+Das optionale dritte Modul trägt nun konsistent den Typ `PWMK`, den
+ausgeschriebenen Namen „PWM KeepAlive“ und den Dateinamen `95_PWMK.pm`.
+Installationen der kurzzeitig verfügbaren Rohfassung werden über die separate
+Migrationsanleitung umgestellt; Neuinstallationen verwenden ausschließlich PWMK.
 
 Die Koordination dynamischer Erhaltungspulse wird jetzt erst bei der
 endgültigen PWM-Auswahl beansprucht. Eine kurze Reservierung überbrückt die
@@ -42,7 +47,7 @@ worden sein. Ungültige Raumwerte, veraltete Rückläufe, eine Pulsdauer kleiner
 oder gleich der Filterverzögerung sowie eine nicht geladene Providerfunktion
 führen nachvollziehbar auf den unveränderten statischen Wert zurück.
 
-Der Lernstand von FBHKeepAlive wird nun je Provider in einer atomar ersetzten
+Der Lernstand von PWMK wird je Provider in einer atomar ersetzten
 JSON-Datei gesichert und nach einem Neustart erst nach erneuter Validierung
 verwendet. Freeze, Unfreeze und Reset aktualisieren den persistenten Stand
 sofort. Pro anerkanntem Zyklus entsteht außerdem ein vollständiges
@@ -57,7 +62,9 @@ GitHub-Dokumentation wird ausschließlich auf Deutsch geführt.
 
 # 1.1.0-153er – 2026-11-21
 
-Diese Version ergänzt `98_FBHKeepAlive.pm`. Das Modul lernt begrenzte
+Diese inzwischen ersetzte Rohfassung ergänzte erstmals ein dynamisches
+Erhaltungspulsmodul. Der veröffentlichte Name lautet jetzt `95_PWMK.pm`.
+PWMK lernt begrenzte
 Erhaltungspulsabstände aus hydraulisch gültigen, gefilterten
 Rücklauftemperaturen. Bestehende PWMR-Konfigurationen bleiben unverändert;
 die Funktion wird je Raum ausdrücklich über zwei Attribute zugeordnet und je

@@ -1,5 +1,5 @@
 #
-# 98_FBHKeepAlive.pm
+# 95_PWMK.pm
 # Dynamic, return-temperature based maintenance-pulse spacing for FHEM PWM/PWMR.
 # Copyright (C) 2026 Frank Parussel
 # 21.11.2026: final-selector coordination, post-delay sample validation and
@@ -16,28 +16,28 @@ use IO::Handle;
 
 our (%defs, $readingFnAttributes);
 
-my %FBHKeepAlive_groupLock;
+my %PWMK_groupLock;
 
-sub FBHKeepAlive_Initialize($);
-sub FBHKeepAlive_Define($$);
-sub FBHKeepAlive_Undef($$);
-sub FBHKeepAlive_Set($@);
-sub FBHKeepAlive_Attr(@);
-sub FBHKeepAlive_Evaluate($);
-sub FBHKeepAlive_CalculateInterval(@);
-sub FBHKeepAlive_GetRoomDecision(@);
-sub FBHKeepAlive_GroupGrant(@);
-sub FBHKeepAlive_ClaimPulse(@);
-sub FBHKeepAlive_StateFile($);
-sub FBHKeepAlive_SaveState($);
-sub FBHKeepAlive_LoadState($);
+sub PWMK_Initialize($);
+sub PWMK_Define($$);
+sub PWMK_Undef($$);
+sub PWMK_Set($@);
+sub PWMK_Attr(@);
+sub PWMK_Evaluate($);
+sub PWMK_CalculateInterval(@);
+sub PWMK_GetRoomDecision(@);
+sub PWMK_GroupGrant(@);
+sub PWMK_ClaimPulse(@);
+sub PWMK_StateFile($);
+sub PWMK_SaveState($);
+sub PWMK_LoadState($);
 
-sub FBHKeepAlive_Initialize($) {
+sub PWMK_Initialize($) {
   my ($hash) = @_;
-  $hash->{DefFn}   = 'FBHKeepAlive_Define';
-  $hash->{UndefFn} = 'FBHKeepAlive_Undef';
-  $hash->{SetFn}   = 'FBHKeepAlive_Set';
-  $hash->{AttrFn}  = 'FBHKeepAlive_Attr';
+  $hash->{DefFn}   = 'PWMK_Define';
+  $hash->{UndefFn} = 'PWMK_Undef';
+  $hash->{SetFn}   = 'PWMK_Set';
+  $hash->{AttrFn}  = 'PWMK_Attr';
   $hash->{AttrList}=
       'disable:0,1 mode:off,shadow,active interval ' .
       'minInterval maxInterval initialInterval minPulseDuration ' .
@@ -47,10 +47,10 @@ sub FBHKeepAlive_Initialize($) {
       ' ' . $readingFnAttributes;
 }
 
-sub FBHKeepAlive_Define($$) {
+sub PWMK_Define($$) {
   my ($hash,$def)=@_;
   my @a=split(/\s+/,$def);
-  return 'syntax: define <name> FBHKeepAlive <PWM-device> [<outside-device>[:<reading>]|none]'
+  return 'syntax: define <name> PWMK <PWM-device> [<outside-device>[:<reading>]|none]'
     if @a < 3 || @a > 4;
   my $pwm=$a[2];
   return "$a[0]: $pwm is not a PWM device"
@@ -67,17 +67,17 @@ sub FBHKeepAlive_Define($$) {
   $hash->{helper}{stateLoaded}=0;
   $hash->{STATE}='defined';
   readingsSingleUpdate($hash,'state','defined',1);
-  InternalTimer(gettimeofday()+5,'FBHKeepAlive_Evaluate',$hash,0);
+  InternalTimer(gettimeofday()+5,'PWMK_Evaluate',$hash,0);
   return undef;
 }
 
-sub FBHKeepAlive_Undef($$) {
+sub PWMK_Undef($$) {
   my ($hash,$arg)=@_;
   RemoveInternalTimer($hash);
   return undef;
 }
 
-sub FBHKeepAlive_Attr(@) {
+sub PWMK_Attr(@) {
   my ($cmd,$name,$attrName,$attrValue)=@_;
   if ($cmd eq 'set' && $attrName =~ /^(?:interval|minInterval|maxInterval|initialInterval|minPulseDuration|providerMaxAge|returnMaxAge|coordinationReservation|targetOffsetLow|targetOffsetHigh|intervalStep)$/) {
     return "$name: $attrName must be numeric"
@@ -88,12 +88,12 @@ sub FBHKeepAlive_Attr(@) {
   return undef;
 }
 
-sub FBHKeepAlive_Set($@) {
+sub PWMK_Set($@) {
   my ($hash,@a)=@_;
   return 'set command missing' if @a < 2;
   my $cmd=$a[1];
   if ($cmd eq 'evaluate') {
-    FBHKeepAlive_Evaluate($hash);
+    PWMK_Evaluate($hash);
     return undef;
   }
   if ($cmd =~ /^(freeze|unfreeze|reset)$/) {
@@ -107,7 +107,7 @@ sub FBHKeepAlive_Set($@) {
       }
     }
     readingsSingleUpdate($hash,'lastService',"$cmd $room",1);
-    my $saveError=FBHKeepAlive_SaveState($hash);
+    my $saveError=PWMK_SaveState($hash);
     readingsSingleUpdate($hash,'persistenceStatus',
       defined($saveError) ? "error: $saveError" : 'saved '.TimeNow(),1);
     return undef;
@@ -115,7 +115,7 @@ sub FBHKeepAlive_Set($@) {
   return 'Unknown argument, choose one of evaluate:noArg freeze unfreeze reset';
 }
 
-sub FBHKeepAlive_CalculateInterval(@) {
+sub PWMK_CalculateInterval(@) {
   my ($current,$trend,$low,$high,$step,$min,$max)=@_;
   my $next=$current;
   $next-=$step if $trend < $low;
@@ -125,20 +125,20 @@ sub FBHKeepAlive_CalculateInterval(@) {
   return int($next+0.5);
 }
 
-sub FBHKeepAlive_safeName($) {
+sub PWMK_safeName($) {
   my ($name)=@_;
   $name =~ s/[^A-Za-z0-9_]/_/g;
   return $name;
 }
 
-sub FBHKeepAlive_epoch($) {
+sub PWMK_epoch($) {
   my ($ts)=@_;
   return 0 unless defined($ts) && $ts =~ /^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/;
   return eval { main::time_str2num($ts) } || 0 if defined(&main::time_str2num);
   return time(); # test harness: presence is enough; production FHEM supplies time_str2num
 }
 
-sub FBHKeepAlive_StateFile($) {
+sub PWMK_StateFile($) {
   my ($hash)=@_;
   my $name=$hash->{NAME};
   my $configured=AttrVal($name,'stateFile','');
@@ -146,12 +146,12 @@ sub FBHKeepAlive_StateFile($) {
   my $globalState=AttrVal('global','statefile','./log/fhem.save');
   $globalState =~ s{[^/\\]+$}{};
   $globalState='./log/' unless length($globalState);
-  return $globalState.FBHKeepAlive_safeName($name).'.json';
+  return $globalState.PWMK_safeName($name).'.json';
 }
 
-sub FBHKeepAlive_SaveState($) {
+sub PWMK_SaveState($) {
   my ($hash)=@_;
-  my $file=FBHKeepAlive_StateFile($hash);
+  my $file=PWMK_StateFile($hash);
   my %rooms;
   foreach my $roomName (sort keys %{$hash->{helper}{rooms} // {}}) {
     my $state=$hash->{helper}{rooms}{$roomName};
@@ -187,9 +187,9 @@ sub FBHKeepAlive_SaveState($) {
   return undef;
 }
 
-sub FBHKeepAlive_LoadState($) {
+sub PWMK_LoadState($) {
   my ($hash)=@_;
-  my $file=FBHKeepAlive_StateFile($hash);
+  my $file=PWMK_StateFile($hash);
   $hash->{helper}{stateLoaded}=1;
   return 0 unless -e $file;
   open(my $fh,'<:encoding(UTF-8)',$file) or return "error: open $file failed: $!";
@@ -229,19 +229,19 @@ sub FBHKeepAlive_LoadState($) {
   return $count;
 }
 
-sub FBHKeepAlive_Evaluate($) {
+sub PWMK_Evaluate($) {
   my ($hash)=@_;
   return undef unless defined($hash);
   my $name=$hash->{NAME};
   my $interval=AttrVal($name,'interval',300);
-  RemoveInternalTimer($hash,'FBHKeepAlive_Evaluate');
-  InternalTimer(gettimeofday()+$interval,'FBHKeepAlive_Evaluate',$hash,0) if $interval > 0;
+  RemoveInternalTimer($hash,'PWMK_Evaluate');
+  InternalTimer(gettimeofday()+$interval,'PWMK_Evaluate',$hash,0) if $interval > 0;
 
   if (!$hash->{helper}{stateLoaded}) {
-    my $loaded=FBHKeepAlive_LoadState($hash);
+    my $loaded=PWMK_LoadState($hash);
     my $status=$loaded =~ /^error:/ ? $loaded : "restored $loaded rooms";
     readingsSingleUpdate($hash,'persistenceStatus',$status,1);
-    readingsSingleUpdate($hash,'persistenceFile',FBHKeepAlive_StateFile($hash),1);
+    readingsSingleUpdate($hash,'persistenceFile',PWMK_StateFile($hash),1);
   }
 
   my $mode=AttrVal($name,'mode','shadow');
@@ -265,7 +265,7 @@ sub FBHKeepAlive_Evaluate($) {
   if (($hash->{OUTSIDE_DEVICE} // 'none') ne 'none') {
     my $candidate=ReadingsVal($hash->{OUTSIDE_DEVICE},$hash->{OUTSIDE_READING},undef);
     my $outsideTs=ReadingsTimestamp($hash->{OUTSIDE_DEVICE},$hash->{OUTSIDE_READING},'');
-    my $outsideEpoch=FBHKeepAlive_epoch($outsideTs);
+    my $outsideEpoch=PWMK_epoch($outsideTs);
     if (defined($candidate) && $candidate =~ /^-?\d+(?:\.\d+)?$/ &&
         $outsideEpoch && ($now-$outsideEpoch <= $returnAge)) {
       $outsideValue=0+$candidate;
@@ -290,12 +290,12 @@ sub FBHKeepAlive_Evaluate($) {
     my $mappedDevice=defined($defs{$dev}) ? $defs{$dev} : undef;
     my $value=$mappedDevice ? ReadingsVal($dev,$reading,undef) : undef;
     my $ts=$mappedDevice ? ReadingsTimestamp($dev,$reading,'') : '';
-    my $epoch=FBHKeepAlive_epoch($ts);
+    my $epoch=PWMK_epoch($ts);
     my $fresh=defined($value) && $value =~ /^-?\d+(?:\.\d+)?$/ &&
               $epoch && ($now-$epoch <= $returnAge);
     my $processing=$mappedDevice ? ReadingsVal($dev,'processing','unknown') : 'unknown';
     my $processingEpoch=$mappedDevice ?
-      FBHKeepAlive_epoch(ReadingsTimestamp($dev,'processing','')) : 0;
+      PWMK_epoch(ReadingsTimestamp($dev,'processing','')) : 0;
     my $postDelaySample=$processing eq 'active' && $epoch && $processingEpoch &&
                         $epoch >= $processingEpoch;
     my $sourceFresh=1;
@@ -306,7 +306,7 @@ sub FBHKeepAlive_Evaluate($) {
       my $sourceExists=defined($defs{$sourceDev});
       my $sourceValue=$sourceExists ? ReadingsVal($sourceDev,$sourceReading,undef) : undef;
       my $sourceTs=$sourceExists ? ReadingsTimestamp($sourceDev,$sourceReading,'') : '';
-      my $sourceEpoch=FBHKeepAlive_epoch($sourceTs);
+      my $sourceEpoch=PWMK_epoch($sourceTs);
       $sourceFresh=defined($sourceValue) &&
                    $sourceValue =~ /^-?\d+(?:\.\d+)?$/ &&
                    $sourceEpoch && ($now-$sourceEpoch <= $returnAge);
@@ -373,7 +373,7 @@ sub FBHKeepAlive_Evaluate($) {
           $reason='outside-rising';
         }
       }
-      my $next=FBHKeepAlive_CalculateInterval($learned,$decisionSignal,$low,$high,$step,$min,$max);
+      my $next=PWMK_CalculateInterval($learned,$decisionSignal,$low,$high,$step,$min,$max);
       $state->{interval}=$next if !$state->{frozen} || !defined($state->{interval});
       $state->{lastReturn}=0+$value;
       $state->{trend}=$trend;
@@ -383,7 +383,7 @@ sub FBHKeepAlive_Evaluate($) {
       $state->{reason}=$reason;
       $state->{sampledThisPulse}=1;
       $state->{lastOutside}=$outsideValue if $outsideReason eq 'valid';
-      my $safe=FBHKeepAlive_safeName($roomName);
+      my $safe=PWMK_safeName($roomName);
       my $event=sprintf(
         'room=%s;cycle=%d;intervalOld=%d;intervalNew=%d;duration=%d;roomActual=%.3f;roomDesired=%.3f;return=%.3f;returnDelta=%.3f;outside=%s;reason=%s;confidence=%d',
         $roomName,$state->{cycles},$learned,$state->{interval},$duration,
@@ -403,7 +403,7 @@ sub FBHKeepAlive_Evaluate($) {
     }
     $state->{duration}=$duration;
     $state->{mode}=$mode;
-    my $safe=FBHKeepAlive_safeName($roomName);
+    my $safe=PWMK_safeName($roomName);
     my $displayInterval=defined($state->{interval}) ? $state->{interval} :
       ((defined($room->{p_maxOffTime}) && $room->{p_maxOffTime} =~ /^\d+(?:\.\d+)?$/)
         ? $room->{p_maxOffTime} : $initial);
@@ -436,31 +436,31 @@ sub FBHKeepAlive_Evaluate($) {
   readingsBulkUpdate($hash,'lastEvaluation',$now);
   readingsBulkUpdate($hash,'state',"$mode: $count rooms");
   if ($persistenceDirty) {
-    my $saveError=FBHKeepAlive_SaveState($hash);
+    my $saveError=PWMK_SaveState($hash);
     readingsBulkUpdate($hash,'persistenceStatus',
       defined($saveError) ? "error: $saveError" : 'saved '.TimeNow());
-    readingsBulkUpdate($hash,'persistenceFile',FBHKeepAlive_StateFile($hash));
+    readingsBulkUpdate($hash,'persistenceFile',PWMK_StateFile($hash));
   }
   readingsEndUpdate($hash,1);
   return undef;
 }
 
-sub FBHKeepAlive_GroupGrant(@) {
+sub PWMK_GroupGrant(@) {
   my ($hash,$room,$now,$duration)=@_;
   my $group=AttrVal($hash->{NAME},'coordinationGroup','');
   return 1 unless length($group);
-  my $lock=$FBHKeepAlive_groupLock{$group};
+  my $lock=$PWMK_groupLock{$group};
   if ($lock && ($lock->{until} // 0) > $now &&
       ($lock->{provider} ne $hash->{NAME} || $lock->{room} ne $room)) {
-    readingsSingleUpdate($hash,'queue_'.FBHKeepAlive_safeName($room),1,1);
+    readingsSingleUpdate($hash,'queue_'.PWMK_safeName($room),1,1);
     return 0;
   }
-  $FBHKeepAlive_groupLock{$group}={provider=>$hash->{NAME},room=>$room,until=>$now+$duration};
-  readingsSingleUpdate($hash,'queue_'.FBHKeepAlive_safeName($room),0,1);
+  $PWMK_groupLock{$group}={provider=>$hash->{NAME},room=>$room,until=>$now+$duration};
+  readingsSingleUpdate($hash,'queue_'.PWMK_safeName($room),0,1);
   return 1;
 }
 
-sub FBHKeepAlive_ClaimPulse(@) {
+sub PWMK_ClaimPulse(@) {
   my ($roomName,$now)=@_;
   $now=time() unless defined($now);
   my $providerName=AttrVal($roomName,'floorKeepAliveProvider','');
@@ -475,28 +475,28 @@ sub FBHKeepAlive_ClaimPulse(@) {
     next unless length($otherProvider) && defined($defs{$otherProvider});
     next unless AttrVal($otherProvider,'coordinationGroup','') eq $group;
     if (ReadingsVal($otherName,'actorState','off') eq 'on') {
-      readingsSingleUpdate($provider,'queue_'.FBHKeepAlive_safeName($roomName),1,1);
+      readingsSingleUpdate($provider,'queue_'.PWMK_safeName($roomName),1,1);
       return 0;
     }
   }
 
-  my $lock=$FBHKeepAlive_groupLock{$group};
+  my $lock=$PWMK_groupLock{$group};
   if ($lock && ($lock->{until} // 0) > $now) {
     return 1 if $lock->{provider} eq $providerName && $lock->{room} eq $roomName;
-    readingsSingleUpdate($provider,'queue_'.FBHKeepAlive_safeName($roomName),1,1);
+    readingsSingleUpdate($provider,'queue_'.PWMK_safeName($roomName),1,1);
     return 0;
   }
   my $reservation=AttrVal($providerName,'coordinationReservation',90);
-  $FBHKeepAlive_groupLock{$group}={provider=>$providerName,room=>$roomName,until=>$now+$reservation};
-  readingsSingleUpdate($provider,'queue_'.FBHKeepAlive_safeName($roomName),0,1);
+  $PWMK_groupLock{$group}={provider=>$providerName,room=>$roomName,until=>$now+$reservation};
+  readingsSingleUpdate($provider,'queue_'.PWMK_safeName($roomName),0,1);
   return 1;
 }
 
-sub FBHKeepAlive_GetRoomDecision(@) {
+sub PWMK_GetRoomDecision(@) {
   my ($providerName,$roomName,$offMinutes)=@_;
   return {valid=>0,reason=>'provider-missing'} unless defined($defs{$providerName});
   my $hash=$defs{$providerName};
-  return {valid=>0,reason=>'wrong-provider-type'} unless (($hash->{TYPE} // '') eq 'FBHKeepAlive');
+  return {valid=>0,reason=>'wrong-provider-type'} unless (($hash->{TYPE} // '') eq 'PWMK');
   return {valid=>0,reason=>'provider-disabled'} if AttrVal($providerName,'disable',0);
   my $mode=AttrVal($providerName,'mode','shadow');
   return {valid=>0,reason=>$mode} unless $mode eq 'active';
@@ -526,100 +526,132 @@ sub FBHKeepAlive_GetRoomDecision(@) {
 1;
 
 =pod
-=item summary Dynamische FBH-Erhaltungspulse anhand gefilterter Rücklauftemperaturen
+=item summary PWM KeepAlive: dynamische FBH-Erhaltungspulse mit sicherem Rückfall
 =begin html
-<a name="FBHKeepAlive"></a><h3>FBHKeepAlive</h3>
+<a name="PWMK"></a>
+<h3>PWMK – PWM KeepAlive</h3>
+<p><b>Purpose:</b> PWMK is the optional third module in the PWM → PWMR → PWMK
+family. It learns a bounded maintenance-pulse interval for each PWMR room from
+hydraulically valid return temperatures. Pulse duration remains fixed.</p>
+
+<h4>Requirements and safe fallback</h4>
 <ul>
-FBHKeepAlive calculates bounded, per-room floor-heating maintenance-pulse
-intervals from filtered return temperatures. Pulse duration remains fixed.
-PWM and PWMR remain fully backward compatible without provider attributes;
-their static maxOffTime behavior is unchanged and no additional PWM attribute
-is required. FBHKeepAlive requires the separate TempReadingFilter module from
-https://github.com/parussel/TempReadingFilter.<br><br>
-Only samples captured while TempReadingFilter reports <i>active</i> and whose
-timestamp is not older than that active phase are learned; idle keepalive
-refreshes and cached pre-delay samples are ignored. Pulse duration must exceed
-the filter delay. Shadow mode is diagnostic only. Active
-mode replaces timing only when the decision is fresh and valid; otherwise the
-unchanged static PWMR maxOffTime settings remain the automatic fallback.<br><br>
-<b>Define</b>: define name FBHKeepAlive PWM-device [outside-device[:reading]|none]<br>
-<b>PWMR attributes</b>: floorReturn device[:reading], floorKeepAliveProvider provider<br>
-<b>Attributes</b>: mode, interval, minInterval, maxInterval, initialInterval,
-minPulseDuration, providerMaxAge, returnMaxAge, coordinationGroup,
-coordinationReservation,
-targetOffsetLow, targetOffsetHigh, intervalStep, stateFile<br>
-<b>Set</b>: evaluate, freeze [room|all], unfreeze [room|all], reset [room|all]<br>
-Diagnostics include mode, interval, duration, last return, trend, target,
-next pulse, confidence, reason, fallback and queue for every discovered room.
-Mode <i>active</i> applies valid timing, <i>shadow</i> keeps learning without
-affecting PWMR, <i>off</i> does not apply learned timing, and disable=1 stops
-evaluation. Static maxOffTime is never overwritten.<br><br>
-Decision order: a room more than 0.2 K below or above target shortens or
-lengthens the interval by intervalStep. Inside that band the return change is
-compared with targetOffsetLow and targetOffsetHigh. Only when room and return
-assessment are stable may a valid outside-temperature change of at least
-0.5 K act as a bounded tie-breaker. The default 30-minute step is limited by
-minInterval and maxInterval (defaults 120 and 480 minutes).<br><br>
-stateFile stores interval, last return, trend, outside value, confidence and
-freeze state in an atomically replaced JSON file after each completed learning
-cycle. Restored data is validated before use. Missing, corrupt or mismatching
-state safely falls back to maxOffTime. learningEvent_ROOM contains one full
-record per accepted cycle for FileLog; persistenceStatus and lastService expose
-save, restore, freeze and reset operations. reset also updates persistent state.
-Coordination is claimed at final PWM selection; a short reservation bridges
-switch confirmation and an actually active actor keeps blocking overlap.
+<li>Separate <a href="https://github.com/parussel/TempReadingFilter">TempReadingFilter</a>
+with a filter delay shorter than the configured pulse duration.</li>
+<li>PWMR attributes <code>floorReturn</code> and
+<code>floorKeepAliveProvider</code>.</li>
+<li>Without PWMK, in shadow/off mode, or with stale/invalid data, PWMR uses its
+unchanged static <code>maxOffTime</code>. PWMK never overwrites it.</li>
 </ul>
+
+<h4>Define</h4>
+<code>define &lt;name&gt; PWMK &lt;PWM-device&gt; [&lt;outside-device&gt;[:&lt;reading&gt;]|none]</code>
+<p>Example: <code>define PWMK_EG PWMK PWM_EG Temperatur_Aussen:realtemperature</code></p>
+
+<h4>Operating modes</h4>
+<ul>
+<li><b>shadow</b>: learn and diagnose without affecting PWMR.</li>
+<li><b>active</b>: apply only fresh, valid learned intervals.</li>
+<li><b>off</b>: do not apply learned intervals.</li>
+<li><b>disable 1</b>: stop evaluation and learning.</li>
+</ul>
+
+<h4>Attributes</h4>
+<ul>
+<li><code>mode</code>, <code>disable</code>: operating state.</li>
+<li><code>minInterval</code>, <code>maxInterval</code>,
+<code>initialInterval</code>, <code>intervalStep</code>: bounded interval learning.</li>
+<li><code>minPulseDuration</code>: fixed pulse duration in minutes.</li>
+<li><code>targetOffsetLow</code>, <code>targetOffsetHigh</code>: return trend band.</li>
+<li><code>providerMaxAge</code>, <code>returnMaxAge</code>: freshness limits.</li>
+<li><code>coordinationGroup</code>, <code>coordinationReservation</code>:
+prevent overlapping maintenance pulses.</li>
+<li><code>stateFile</code>: optional absolute persistence path; otherwise the
+global FHEM statefile directory is used.</li>
+</ul>
+
+<h4>Set commands</h4>
+<ul>
+<li><code>evaluate</code>: evaluate immediately.</li>
+<li><code>freeze [room|all]</code> / <code>unfreeze [room|all]</code>.</li>
+<li><code>reset [room|all]</code>: clear learning state and update persistence.</li>
+</ul>
+
+<h4>Decision and diagnostics</h4>
+<p>More than 0.2 K below/above room target shortens/lengthens the interval.
+Inside that band the valid return trend decides. Only when both are stable may
+an outside-temperature change of at least 0.5 K act as bounded tie-breaker.
+Default step is 30 minutes, bounded to 120…480 minutes.</p>
+<p>Per-room readings expose interval, duration, last return, trend, target,
+next pulse, confidence, reason, fallback and queue.
+<code>learningEvent_ROOM</code> contains one complete accepted learning cycle.
+Persistent JSON data is atomically replaced and validated after restart.</p>
 =end html
 
 =begin html_DE
-<a name="FBHKeepAlive"></a><h3>FBHKeepAlive</h3>
+<a name="PWMK"></a>
+<h3>PWMK – PWM KeepAlive</h3>
+<p><b>Aufgabe:</b> PWMK ist das optionale dritte Modul im Verbund
+PWM → PWMR → PWMK. Es lernt für jeden PWMR-Raum einen begrenzten Abstand
+zwischen Erhaltungspulsen aus hydraulisch gültigen Rücklauftemperaturen.
+Die Pulsdauer bleibt fest.</p>
+
+<h4>Voraussetzungen und sicherer Rückfall</h4>
 <ul>
-Das Modul berechnet pro PWMR-Raum einen begrenzten dynamischen Abstand für
-FBH-Erhaltungspulse. Die Pulsdauer bleibt fest.
-PWM und PWMR bleiben ohne Providerattribute vollständig abwärtskompatibel;
-das statische maxOffTime arbeitet unverändert weiter und am PWM-Gerät ist kein
-zusätzliches Attribut erforderlich. FBHKeepAlive benötigt das eigenständige
-TempReadingFilter-Modul von
-https://github.com/parussel/TempReadingFilter.<br><br>
-Gelernt werden ausschließlich
-Messungen, während der TempReadingFilter <i>active</i> meldet und deren
-Zeitstempel nicht vor dem Beginn dieser aktiven Phase liegt; reine
-Keepalive-Aktualisierungen im Ruhezustand und zwischengespeicherte Altwerte
-zählen nicht als Messzyklus. Die Pulsdauer muss größer als die
-Filterverzögerung sein. Im
-Modus <i>shadow</i> entstehen nur Diagnosen. Im Modus <i>active</i> ersetzt nur
-eine frische, gültige Entscheidung den Pulsabstand. Bei fehlenden oder
-ungültigen Daten gilt automatisch der unveränderte statische PWMR-maxOffTime-
-Wert.<br><br>
-<b>Define</b>: define name FBHKeepAlive PWM-device [outside-device[:reading]|none]<br>
-<b>PWMR-Attribute</b>: floorReturn device[:reading], floorKeepAliveProvider provider<br>
-<b>Attribute</b>: mode, interval, minInterval, maxInterval, initialInterval,
-minPulseDuration, providerMaxAge, returnMaxAge, coordinationGroup,
-coordinationReservation,
-targetOffsetLow, targetOffsetHigh, intervalStep, stateFile<br>
-<b>Set</b>: evaluate, freeze [Raum|all], unfreeze [Raum|all], reset [Raum|all]<br>
-Die Readings zeigen je Raum Modus, Abstand, Dauer, letzten Rücklauf, Trend,
-Zielband, nächsten Puls, Vertrauenswert, Begründung, Rückfall und Warteschlange.
-<i>active</i> wendet gültige Werte an, <i>shadow</i> lernt ohne Eingriff,
-<i>off</i> wendet keine Lernwerte an und disable=1 hält die Auswertung an.
-Das statische maxOffTime wird niemals überschrieben.<br><br>
-Entscheidungsfolge: Eine Raum-Isttemperatur mehr als 0,2 K unter oder über Soll
-verkürzt oder verlängert den Abstand um intervalStep. Innerhalb dieses Bandes
-entscheidet die Rücklaufänderung gegenüber targetOffsetLow und
-targetOffsetHigh. Nur bei stabiler Raum- und Rücklaufbewertung dient eine
-gültige Außentemperaturänderung ab 0,5 K als begrenzter Tie-Breaker. Die
-Standard-Schrittweite von 30 Minuten bleibt innerhalb minInterval und
-maxInterval (standardmäßig 120 bis 480 Minuten).<br><br>
-stateFile speichert Intervall, letzten Rücklauf, Trend, Außenwert, Vertrauen
-und Freeze-Zustand nach jedem abgeschlossenen Lernzyklus in einer atomar
-ersetzten JSON-Datei. Wiederhergestellte Daten werden vor der Anwendung
-geprüft. Fehlende, beschädigte oder unpassende Zustände führen sicher zu
-maxOffTime. learningEvent_RAUM enthält pro Lernzyklus einen vollständigen
-FileLog-Datensatz; persistenceStatus und lastService dokumentieren Speichern,
-Wiederherstellen, Freeze und Reset. Reset aktualisiert auch die Zustandsdatei.
-Die Koordination wird erst bei der endgültigen PWM-Auswahl beansprucht. Eine
-kurze Reservierung überbrückt die Schaltbestätigung; ein tatsächlich aktiver
-Aktor verhindert Überschneidungen auch danach.
+<li>Eigenständiger <a href="https://github.com/parussel/TempReadingFilter">TempReadingFilter</a>
+mit einer Filterverzögerung, die kürzer als die Pulsdauer ist.</li>
+<li>PWMR-Attribute <code>floorReturn</code> und
+<code>floorKeepAliveProvider</code>.</li>
+<li>Ohne PWMK, in <i>shadow/off</i> oder bei ungültigen/veralteten Daten
+verwendet PWMR automatisch das unveränderte statische <code>maxOffTime</code>.
+PWMK überschreibt diesen Wert niemals.</li>
 </ul>
+
+<h4>Definition</h4>
+<code>define &lt;Name&gt; PWMK &lt;PWM-Gerät&gt; [&lt;Außensensor&gt;[:&lt;Reading&gt;]|none]</code>
+<p>Beispiel:
+<code>define PWMK_EG PWMK PWM_EG Temperatur_Aussen:realtemperature</code></p>
+
+<h4>Betriebsarten</h4>
+<ul>
+<li><b>shadow</b>: lernen und anzeigen, ohne PWMR zu beeinflussen.</li>
+<li><b>active</b>: ausschließlich frische gültige Lernwerte anwenden.</li>
+<li><b>off</b>: keine Lernwerte anwenden.</li>
+<li><b>disable 1</b>: Auswertung und Lernen vollständig anhalten.</li>
+</ul>
+
+<h4>Attribute</h4>
+<ul>
+<li><code>mode</code>, <code>disable</code>: Betriebszustand.</li>
+<li><code>minInterval</code>, <code>maxInterval</code>,
+<code>initialInterval</code>, <code>intervalStep</code>: begrenztes Intervalllernen.</li>
+<li><code>minPulseDuration</code>: feste Pulsdauer in Minuten.</li>
+<li><code>targetOffsetLow</code>, <code>targetOffsetHigh</code>:
+Bewertungsband des Rücklauftrends.</li>
+<li><code>providerMaxAge</code>, <code>returnMaxAge</code>: Altersgrenzen.</li>
+<li><code>coordinationGroup</code>, <code>coordinationReservation</code>:
+verhindern gleichzeitige Erhaltungspulse.</li>
+<li><code>stateFile</code>: optionaler absoluter Speicherpfad; ohne Angabe wird
+das Verzeichnis des globalen FHEM-statefile verwendet.</li>
+</ul>
+
+<h4>Set-Befehle</h4>
+<ul>
+<li><code>evaluate</code>: sofort auswerten.</li>
+<li><code>freeze [Raum|all]</code> / <code>unfreeze [Raum|all]</code>.</li>
+<li><code>reset [Raum|all]</code>: Lernzustand löschen und persistent speichern.</li>
+</ul>
+
+<h4>Lernentscheidung und Readings</h4>
+<p>Mehr als 0,2 K unter/über Raum-Soll verkürzt/verlängert den Abstand.
+Innerhalb dieses Bandes entscheidet der gültige Rücklauftrend. Nur wenn beide
+Bewertungen stabil sind, darf eine Außentemperaturänderung ab 0,5 K als
+begrenzter Tie-Breaker wirken. Die Standardschrittweite beträgt 30 Minuten,
+begrenzt auf 120…480 Minuten.</p>
+<p>Raumbezogene Readings zeigen Abstand, Dauer, letzten Rücklauf, Trend,
+Zielband, nächsten Puls, Vertrauen, Begründung, Rückfall und Warteschlange.
+<code>learningEvent_RAUM</code> enthält einen vollständigen angenommenen
+Lernzyklus. Die JSON-Zustandsdatei wird atomar ersetzt und nach einem Neustart
+geprüft.</p>
 =end html_DE
 =cut
