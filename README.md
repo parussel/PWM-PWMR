@@ -83,8 +83,18 @@ define FBHKeepAlive_EG FBHKeepAlive PWM_EG Temperatur_Aussen:realtemperature
 attr FBHKeepAlive_EG mode shadow
 attr FBHKeepAlive_EG minPulseDuration 20
 attr FBHKeepAlive_EG coordinationGroup FBH_Gemeinsam
-attr FBHKeepAlive_EG stateFile /opt/fhem/log/FBHKeepAlive_EG.json
+attr FBHKeepAlive_EG event-on-change-reading learningEvent_.*,persistenceStatus,lastService,state
 ```
+
+Ohne `stateFile` speichert das Modul automatisch im Verzeichnis des unter
+`global statefile` eingestellten FHEM-Zustands. Damit folgt es auch bei
+abweichenden Installations- oder Mountpfaden der vorhandenen FHEM-
+Konfiguration. Nur wer bewusst einen anderen Ort verwenden möchte, setzt
+`stateFile` auf einen eigenen vollständigen Pfad.
+
+Der Ereignisfilter im Beispiel verhindert, dass unveränderte Diagnose-
+Readings alle fünf Minuten unnötig weitere FHEM-Notifies und FileLogs
+auslösen. Die Readings bleiben unabhängig davon vollständig sichtbar.
 
 Jeder gewünschte PWMR-Raum erhält den gefilterten Rücklauf und seinen
 Provider:
@@ -167,9 +177,13 @@ Für Langzeitanalysen erzeugt jeder Lernzyklus ein vollständiges Reading
 Beispiel für ein tägliches FileLog mit 180 Tagen Aufbewahrung:
 
 ```text
-define FileLog_FBHKeepAlive_EG FileLog /opt/fhem/log/%Y-%m-%d-FBHKeepAlive_EG.log FBHKeepAlive_EG:(learningEvent_.*|persistenceStatus|lastService):.*
+define FileLog_FBHKeepAlive_EG FileLog ./log/%Y-%m-%d-FBHKeepAlive_EG.log FBHKeepAlive_EG:(learningEvent_.*|persistenceStatus|lastService):.*
 attr FileLog_FBHKeepAlive_EG nrarchive 180
 ```
+
+Der FileLog-Pfad ist ein Beispiel und muss zur jeweiligen FHEM-
+Logkonfiguration passen. Der installationsspezifische Pfad dieser Anlage ist
+nicht Bestandteil des veröffentlichten Moduls.
 
 `reset <Raum>` beziehungsweise `reset all` aktualisiert auch die persistente
 Datei. `freeze` und `unfreeze` werden ebenfalls neustartsicher gespeichert.
@@ -293,5 +307,3 @@ späteren FHEM-Beiträgen auf. Die vollständige Zuordnung steht in
 [NOTICE.md](NOTICE.md). Lizenz: GNU General Public License, Version 2 oder
 nach eigener Wahl eine spätere Version (`GPL-2.0-or-later`); siehe
 [LICENSE](LICENSE).
-
-Eine kurze englische Zusammenfassung steht in [README.en.md](README.en.md).

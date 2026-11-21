@@ -9,6 +9,9 @@
 - Vollständige learningEvent-Readings ermöglichen getrennte EG-/OG-
   Langzeitprotokolle; Hilfe und Installationsdokumentation erklären jetzt das
   Zusammenspiel aller drei Module und die TempReadingFilter-Voraussetzung.
+- Der automatische Zustandsdateipfad folgt ohne doppeltes Namenspräfix dem
+  Verzeichnis von global statefile; die Dokumentation ist ausschließlich
+  deutsch und empfiehlt einen engen Ereignisfilter gegen unnötige Folgeevents.
 
 2026-10-20 PWM/PWMR 1.0.1-153er
 - Modulköpfe um Herkunfts- und Änderungshinweise für die 153er-netz.de-

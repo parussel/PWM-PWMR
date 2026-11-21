@@ -146,7 +146,7 @@ sub FBHKeepAlive_StateFile($) {
   my $globalState=AttrVal('global','statefile','./log/fhem.save');
   $globalState =~ s{[^/\\]+$}{};
   $globalState='./log/' unless length($globalState);
-  return $globalState.'FBHKeepAlive_'.FBHKeepAlive_safeName($name).'.json';
+  return $globalState.FBHKeepAlive_safeName($name).'.json';
 }
 
 sub FBHKeepAlive_SaveState($) {
