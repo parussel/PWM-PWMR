@@ -32,6 +32,16 @@ Regelparameter, Solltemperaturen, PWM-Taktung und vorhandene Sperren werden
 durch diesen Fix nicht geändert. Der Abgleich bestätigt ausschließlich den
 gemeldeten Softwarezustand, nicht die mechanische Ventilposition oder den
 tatsächlichen Durchfluss.
+# 1.1.1-153er – 2026-11-21
+
+Die Koordination dynamischer Erhaltungspulse wird jetzt erst bei der
+endgültigen PWM-Auswahl beansprucht. Eine kurze Reservierung überbrückt die
+Schaltbestätigung; danach verhindert der gemeldete aktive Aktorzustand eine
+Überschneidung. Ein Lernwert muss nach Beginn der aktiven Filterphase gemessen
+worden sein. Ungültige Raumwerte, veraltete Rückläufe, eine Pulsdauer kleiner
+oder gleich der Filterverzögerung sowie eine nicht geladene Providerfunktion
+führen nachvollziehbar auf den unveränderten statischen Wert zurück.
+
 # 1.1.0-153er – 2026-11-21
 
 Diese Version ergänzt `98_FBHKeepAlive.pm`. Das Modul lernt begrenzte

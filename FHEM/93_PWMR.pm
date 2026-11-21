@@ -84,6 +84,8 @@
 #             both attributes
 # 21.11.26 add optional FBHKeepAlive provider and filtered floor-return mapping;
 #             static maxOffTime remains the automatic fallback
+# 21.11.26 expose provider-function-missing when a configured optional provider
+#             cannot be called; static maxOffTime remains active
 # ---------------------------------------------------------------------------
 
 # module for PWM (Pulse Width Modulation) calculation
@@ -1450,6 +1452,15 @@ PWMR_ReadRoom(@)
         readingsSingleUpdate($room, 'keepAliveDuration', $maxOffTimePeriod, 1);
         readingsSingleUpdate($room, 'keepAliveQueue', 0, 1);
       }
+    } elsif ($keepAliveProvider ne '') {
+      # The room remains on its configured maxOffTime when the optional
+      # provider module has not been loaded.  Expose this explicitly instead
+      # of silently hiding a deployment or load-order problem.
+      readingsSingleUpdate($room, 'keepAliveMode', 'static-fallback', 1);
+      readingsSingleUpdate($room, 'keepAliveReason', 'provider-function-missing', 1);
+      readingsSingleUpdate($room, 'keepAliveInterval', $maxOffTime, 1);
+      readingsSingleUpdate($room, 'keepAliveDuration', $maxOffTimePeriod, 1);
+      readingsSingleUpdate($room, 'keepAliveQueue', 0, 1);
     }
 
     if (defined($room->{c_tempRuleS})) {

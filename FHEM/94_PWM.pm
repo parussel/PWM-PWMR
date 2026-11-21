@@ -49,6 +49,8 @@
 # 18.10.26 an open window forces the actor off before valve protection,
 #             maxOffTime and regular pulse decisions; an active valve protection
 #             is thereby ended and cannot switch the actor back on
+# 21.11.26 claim coordinated FBHKeepAlive pulses only at the final PWM selector;
+#             both full-due and half-due selection paths enforce the claim
 # ---------------------------------------------------------------------------
 # 31.01.21 GA add attribute maxOffTimeMode (max, 1, 2, 3)
 # 01.02.21 GA fix move reading maxOffTimeCalculation into an attribute and internal values
@@ -333,9 +335,14 @@ PWM_Calculate($)
       if ($RoomsMaxOffTimeProtect{$d} eq "on_mop") {
   
         if ($maxOffTimeCnt < int($maxOffTimeMode)) {
-          $RoomsToSwitchOn{$d} = 1;
-          $RoomsPulses{$d}     = $hash->{MaxPulse};
-    	  $maxOffTimeCnt++;
+          if (defined(&FBHKeepAlive_ClaimPulse) && !FBHKeepAlive_ClaimPulse($d,time())) {
+            $RoomsToStayOff{$d} = 1;
+            $RoomsPulses{$d}    = 0;
+          } else {
+            $RoomsToSwitchOn{$d} = 1;
+            $RoomsPulses{$d}     = $hash->{MaxPulse};
+            $maxOffTimeCnt++;
+          }
         } else {
           Log3 ($hash, 3, "PWM_Calculate $defs{$d}->{NAME}: F19 maxOffTime protection stay off (Max $maxOffTimeMode)");
           $RoomsToStayOff{$d}  = 1;
@@ -361,10 +368,15 @@ PWM_Calculate($)
         # on_mop_maybe may only be set if c_maxOffTimeMode > 1
         if (($RoomsMaxOffTimeProtect_on + $RoomsMaxOffTimeProtect_stay_on > 0) 
   	  and ($maxOffTimeCnt < int($maxOffTimeMode))) {
-          Log3 ($hash, 3, "PWM_Calculate $defs{$d}->{NAME}: F20 maxOffTime protection pulled on with another room");
-          $RoomsToSwitchOn{$d} = 1;
-          $RoomsPulses{$d}     = $hash->{MaxPulse};
-          $maxOffTimeCnt++;
+          if (defined(&FBHKeepAlive_ClaimPulse) && !FBHKeepAlive_ClaimPulse($d,time())) {
+            $RoomsToStayOff{$d} = 1;
+            $RoomsPulses{$d}    = 0;
+          } else {
+            Log3 ($hash, 3, "PWM_Calculate $defs{$d}->{NAME}: F20 maxOffTime protection pulled on with another room");
+            $RoomsToSwitchOn{$d} = 1;
+            $RoomsPulses{$d}     = $hash->{MaxPulse};
+            $maxOffTimeCnt++;
+          }
   
         } else {
           $RoomsToStayOff{$d}  = 1;

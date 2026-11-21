@@ -63,6 +63,10 @@ attr EG_Bad_PWM floorKeepAliveProvider FBHKeepAlive_EG
 `attr FBHKeepAlive_EG mode active` die dynamischen Abstände. Erfasst werden
 nur Messungen, bei denen der `TempReadingFilter` den Zustand `active` meldet;
 dessen reine Keepalive-Aktualisierungen im Ruhezustand werden nicht gelernt.
+Der gefilterte Messwert muss außerdem zeitlich nach dem Beginn der aktiven
+Filterphase liegen; ein noch zwischengespeicherter Altwert wird nicht als
+neue Bodenmessung verwendet. Die Pulsdauer muss größer als die konfigurierte
+Filterverzögerung sein, andernfalls bleibt der statische Rückfall aktiv.
 Pro zusammenhängender Ventilöffnung wird genau eine Lernentscheidung gebildet,
 auch wenn währenddessen mehrere Sensorwerte eintreffen.
 Eine gültige Außentemperaturänderung von mindestens 0,5 K wirkt nur dann als
@@ -72,7 +76,10 @@ Der erste Lernwert beginnt beim bereits vorhandenen statischen Raumwert und
 verursacht deshalb keinen sprunghaften Wechsel. `set ... freeze`, `unfreeze`,
 `reset` und `evaluate` unterstützen Diagnose und Service. Zwei Provider mit
 derselben `coordinationGroup` lassen höchstens einen fälligen dynamischen
-Erhaltungspuls gleichzeitig zu.
+Erhaltungspuls gleichzeitig zu. Die Freigabe erfolgt erst bei der endgültigen
+PWM-Auswahl; eine kurze Reservierung überbrückt die Schaltbestätigung und der
+tatsächlich gemeldete Aktorzustand verhindert Überschneidungen auch über die
+Reservierungszeit hinaus.
 
 Die Prüfung betrifft den **gemeldeten Softwarezustand**. Sie kann weder die
 mechanische Ventilstellung noch Durchfluss oder Raumtemperatur garantieren.
