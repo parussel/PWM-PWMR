@@ -148,7 +148,10 @@ sub FBHKeepAlive_Evaluate($) {
   my ($outsideValue,$outsideReason)=('n/a','not-configured');
   if (($hash->{OUTSIDE_DEVICE} // 'none') ne 'none') {
     my $candidate=ReadingsVal($hash->{OUTSIDE_DEVICE},$hash->{OUTSIDE_READING},undef);
-    if (defined($candidate) && $candidate =~ /^-?\d+(?:\.\d+)?$/) {
+    my $outsideTs=ReadingsTimestamp($hash->{OUTSIDE_DEVICE},$hash->{OUTSIDE_READING},'');
+    my $outsideEpoch=FBHKeepAlive_epoch($outsideTs);
+    if (defined($candidate) && $candidate =~ /^-?\d+(?:\.\d+)?$/ &&
+        $outsideEpoch && ($now-$outsideEpoch <= $returnAge)) {
       $outsideValue=0+$candidate;
       $outsideReason='valid';
     } else {
@@ -217,6 +220,17 @@ sub FBHKeepAlive_Evaluate($) {
       } else {
         $reason=$trend < $low ? 'return-falling' : $trend > $high ? 'return-rising' : 'return-stable';
       }
+      if ($reason eq 'return-stable' && $outsideReason eq 'valid' &&
+          defined($state->{lastOutside})) {
+        my $outsideTrend=$outsideValue-$state->{lastOutside};
+        if ($outsideTrend <= -0.5) {
+          $trend=$low-0.001;
+          $reason='outside-falling';
+        } elsif ($outsideTrend >= 0.5) {
+          $trend=$high+0.001;
+          $reason='outside-rising';
+        }
+      }
       my $next=FBHKeepAlive_CalculateInterval($learned,$trend,$low,$high,$step,$min,$max);
       $state->{interval}=$next unless $state->{frozen};
       $state->{lastReturn}=0+$value;
@@ -226,6 +240,7 @@ sub FBHKeepAlive_Evaluate($) {
       $state->{valid}=1;
       $state->{reason}=$reason;
       $state->{sampledThisPulse}=1;
+      $state->{lastOutside}=$outsideValue if $outsideReason eq 'valid';
     } elsif (($state->{cycles} // 0) > 0) {
       # TempReadingFilter periodically refreshes its output while idle.  That
       # is useful for display but is not a new hydraulically valid sample.
@@ -336,6 +351,8 @@ targetOffsetLow, targetOffsetHigh, intervalStep<br>
 <b>Set</b>: evaluate, freeze [room|all], unfreeze [room|all], reset [room|all]<br>
 Diagnostics include mode, interval, duration, last return, trend, target,
 next pulse, confidence, reason, fallback and queue for every discovered room.
+A valid outside-temperature change of at least 0.5 K is only a tie-breaker
+when room and return assessment are otherwise stable.
 </ul>
 =end html
 
@@ -358,6 +375,8 @@ targetOffsetLow, targetOffsetHigh, intervalStep<br>
 <b>Set</b>: evaluate, freeze [Raum|all], unfreeze [Raum|all], reset [Raum|all]<br>
 Die Readings zeigen je Raum Modus, Abstand, Dauer, letzten Rücklauf, Trend,
 Zielband, nächsten Puls, Vertrauenswert, Begründung, Rückfall und Warteschlange.
+Eine gültige Außentemperaturänderung ab 0,5 K dient nur bei ansonsten stabiler
+Raum- und Rücklaufbewertung als begrenzter Tie-Breaker.
 </ul>
 =end html_DE
 =cut

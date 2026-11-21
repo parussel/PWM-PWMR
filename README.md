@@ -65,6 +65,9 @@ nur Messungen, bei denen der `TempReadingFilter` den Zustand `active` meldet;
 dessen reine Keepalive-Aktualisierungen im Ruhezustand werden nicht gelernt.
 Pro zusammenhängender Ventilöffnung wird genau eine Lernentscheidung gebildet,
 auch wenn währenddessen mehrere Sensorwerte eintreffen.
+Eine gültige Außentemperaturänderung von mindestens 0,5 K wirkt nur dann als
+begrenzter Tie-Breaker, wenn Raum- und Rücklaufbewertung ansonsten stabil sind;
+sie kann deshalb keine stärkere raumbezogene Entscheidung übersteuern.
 Der erste Lernwert beginnt beim bereits vorhandenen statischen Raumwert und
 verursacht deshalb keinen sprunghaften Wechsel. `set ... freeze`, `unfreeze`,
 `reset` und `evaluate` unterstützen Diagnose und Service. Zwei Provider mit

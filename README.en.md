@@ -24,6 +24,8 @@ not usable. One generic instance is used per PWM group; an optional shared
 coordination group prevents overlapping dynamic maintenance pulses. Shadow,
 active, freeze, reset, diagnostics, and arbitrary outside-device/readings are
 supported. See the German README for configuration and rollback commands.
+A fresh outside-temperature change of at least 0.5 K is used only as a
+bounded tie-breaker when room and return assessments are otherwise stable.
 
 For installation, updates and rollback, use the German
 [README](README.md). Its FHEM commands first exclude only the two official
