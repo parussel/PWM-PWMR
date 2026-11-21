@@ -1,5 +1,21 @@
 # PWM, PWMR und PWMK – erweiterte FHEM-Module
 
+Diese Erweiterung ist aus einer realen Fußbodenheizungsanlage entstanden. Ein
+Raum kann seine Solltemperatur bereits erreicht haben, während der Estrich bis
+zur nächsten regulären Heizanforderung deutlich auskühlt. Beim späteren Öffnen
+nimmt der Heizkreis schlagartig viel Energie auf; dadurch können Vorlauf,
+Mischer und hydraulisch gekoppelte Kreise einbrechen.
+
+PWMK hält den Boden nicht mit einem pauschalen Dauerwert warm. Das Modul lernt
+raumindividuelle Abstände für kurze Erhaltungspulse. Als Grundlage dient ein
+Rücklaufwert, den der TempReadingFilter erst nach ausreichender Durchströmung
+als hydraulisch belastbar freigibt.
+
+Die ausführliche Beschreibung von Hydraulik, DS18B20-Anlegefühlern,
+OneWire/OW2S0SMSGUARD, I²C/MCP-Ventilansteuerung, TempReadingFilter, PWM, PWMR,
+PWMK, PID20 und einer möglichen Shelly/MQTT-Nachrüstung steht in der
+**[zentralen Dokumentation der Heizungsregelkette](HEIZUNGSREGELKETTE.md)**.
+
 Diese eigenständig installierbare FHEM-Erweiterung besteht aus drei
 aufeinander abgestimmten Modulen:
 
@@ -10,7 +26,7 @@ aufeinander abgestimmten Modulen:
 | `PWMK` – **PWM KeepAlive** | dynamische Erhaltungspulse anhand belastbarer Rücklaufwerte | optional |
 
 ```text
-PWM → PWMR → PWMK → TempReadingFilter → gefilterter Rücklauf
+PWM → PWMR → Raumventil → TempReadingFilter → PWMK → dynamischer Pulsabstand
 ```
 
 `PWM` und `PWMR` bleiben ohne `PWMK` vollständig eigenständig und

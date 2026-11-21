@@ -1,4 +1,8 @@
 2026-11-21 PWM/PWMR/PWMK 1.1.1-153er
+- Eine zentrale Systemdokumentation erklärt jetzt den praktischen Hintergrund,
+  Franks konkrete Hydraulik und Sensorik, die getrennten OneWire- und I²C/MCP-
+  Wege, TempReadingFilter, den vollständigen Modulverbund und eine alternative
+  Nachrüstung mit Shelly Plus Add-on und MQTT.
 - Das neue Ergänzungsmodul wurde noch am Tag der Rohveröffentlichung von
   98_FBHKeepAlive.pm / FBHKeepAlive in 95_PWMK.pm / PWMK umbenannt. Der
   ausgeschriebene Name lautet „PWM KeepAlive“; eine eigene Kurzanleitung
