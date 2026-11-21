@@ -187,12 +187,13 @@ sub FBHKeepAlive_Evaluate($) {
                    $sourceEpoch && ($now-$sourceEpoch <= $returnAge);
     }
     my $state=$hash->{helper}{rooms}{$roomName} //= {};
+    $state->{sampledThisPulse}=0 if $processing ne 'active';
     my $reason;
     if (!$sourceFresh) {
       $state->{valid}=0;
       $state->{reason}='source-stale-or-invalid';
       $state->{updated}=$now;
-    } elsif ($fresh && $processing eq 'active') {
+    } elsif ($fresh && $processing eq 'active' && !$state->{sampledThisPulse}) {
       my $previous=$state->{lastReturn};
       my $trend=defined($previous) ? $value-$previous : 0;
       # Preserve the room's established static cadence as the first learning
@@ -224,6 +225,7 @@ sub FBHKeepAlive_Evaluate($) {
       $state->{updated}=$now;
       $state->{valid}=1;
       $state->{reason}=$reason;
+      $state->{sampledThisPulse}=1;
     } elsif (($state->{cycles} // 0) > 0) {
       # TempReadingFilter periodically refreshes its output while idle.  That
       # is useful for display but is not a new hydraulically valid sample.

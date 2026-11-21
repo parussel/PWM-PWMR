@@ -16,7 +16,8 @@ state; a command’s empty return value alone is not confirmation.
 
 `FBHKeepAlive` provides bounded per-room maintenance-pulse spacing from
 filtered return temperatures. It learns only while the associated
-`TempReadingFilter` reports `active`, retains fixed pulse duration, starts
+`TempReadingFilter` reports `active`, and counts exactly one learning decision
+per continuous valve opening. It retains fixed pulse duration and starts
 from each room's existing static cadence, and automatically falls back to
 the unchanged PWMR `maxOffTime` settings whenever data or provider output is
 not usable. One generic instance is used per PWM group; an optional shared
