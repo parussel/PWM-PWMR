@@ -33,10 +33,19 @@ einzelnen Heizkreises. Sie ist jedoch nur dann aussagekräftig, wenn Wasser aus
 dem Boden tatsächlich bis zum Heizkreisverteiler zurückgeflossen ist.
 
 Ohne Zirkulation nimmt das stehende Wasser zunehmend die Temperatur von Rohr,
-Verteiler und Umgebung an. Selbst ein sorgfältig montierter Sensor liefert dann
-keinen verlässlichen Wert für den Energiezustand des Bodens. Dieses Problem
-betrifft Anlegefühler ebenso wie Tauchfühler an einer Stelle ohne aktuellen
-Durchfluss.
+Verteiler und Umgebung an. Der Heizkreisverteiler und sein Kasten können sich
+dabei erwärmen; zusammen mit dem stillstehenden Heizungswasser können dadurch
+auch die Messwerte der Anlegefühler nach oben steigen. Selbst ein sorgfältig
+montierter Sensor liefert dann keinen verlässlichen Wert für den Energiezustand
+des Bodens. Dieses Problem betrifft Anlegefühler ebenso wie Tauchfühler an einer
+Stelle ohne aktuellen Durchfluss.
+
+Nach dem Öffnen muss deshalb zunächst die Öffnungszeit des Heizungsventils
+ablaufen. Hinzu kommt die hydraulische Transportzeit, bis das Wasser den
+Fußbodenheizkreis des betreffenden Raums durchströmt hat und wieder am
+Rücklaufsensor im Heizkreisverteiler ankommt. Erst dieser anschließend
+freigegebene Rücklaufwert erlaubt einen belastbaren Rückschluss auf den
+Energiezustand und die wirksame Temperatur des Bodens.
 
 `TempReadingFilter` löst genau diesen zeitlichen Zusammenhang:
 
@@ -93,8 +102,13 @@ zusätzliche Isolierung um Rohr und Fühler vermindert den Einfluss der Luft im
 Heizkreisverteiler. Entsprechend können auch Vorlauftemperaturen erfasst werden.
 
 Die Montage verbessert die Messung, beseitigt aber nicht das Durchflussproblem.
-Erst das Zusammenspiel aus Ventilöffnung, ausreichend langer Pulsdauer und
-`TempReadingFilter` macht den Wert für PWMK hydraulisch belastbar.
+Bei stillstehendem Wasser können sich Verteilerkasten, Rohr und Anlegefühler
+gemeinsam erwärmen und dadurch einen nach oben verfälschten Rücklaufwert
+anzeigen. Erst nachdem das Heizungsventil geöffnet hat und Wasser aus dem
+betreffenden Raum wieder am Rücklaufsensor angekommen ist, lässt der Messwert
+einen belastbaren Rückschluss auf den Boden zu. Dieses Zusammenspiel aus
+Ventilöffnungszeit, zusätzlicher Transportzeit, ausreichend langer Pulsdauer
+und `TempReadingFilter` macht den Wert für PWMK hydraulisch nutzbar.
 
 ## Getrennte Daten- und Aktorbusse
 

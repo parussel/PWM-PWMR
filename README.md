@@ -6,14 +6,19 @@ zur nächsten regulären Heizanforderung deutlich auskühlt. Beim späteren Öff
 nimmt der Heizkreis schlagartig viel Energie auf; dadurch können Vorlauf,
 Mischer und hydraulisch gekoppelte Kreise einbrechen.
 
-PWMK hält den Boden nicht mit einem pauschalen Dauerwert warm. Das Modul lernt
-raumindividuelle Abstände für kurze Erhaltungspulse. Als Grundlage dient ein
-Rücklaufwert, den der TempReadingFilter erst nach ausreichender Durchströmung
-als hydraulisch belastbar freigibt.
+Das Zusatzmodul PWMK hält den Boden nicht mit einem fest eingestellten,
+pauschalen Erhaltungspuls warm. Das Modul lernt stattdessen raumindividuelle
+Abstände für kurze Erhaltungspulse. Als Grundlage dient der Rücklaufwert: Erst
+nachdem die Öffnungszeit des Heizungsventils und die zusätzliche Laufzeit des
+Wassers durch den Fußbodenheizkreis bis zurück zum Rücklaufsensor im
+Heizkreisverteiler verstrichen sind, gibt TempReadingFilter den Messwert als
+hydraulisch belastbar frei.
 
-Die ausführliche Beschreibung von Hydraulik, DS18B20-Anlegefühlern,
-OneWire/OW2S0SMSGUARD, I²C/MCP-Ventilansteuerung, TempReadingFilter, PWM, PWMR,
-PWMK, PID20 und einer möglichen Shelly/MQTT-Nachrüstung steht in der
+PWM, PWMR und PWMK gehören zu dem von Frank Parussel überarbeiteten
+FHEM-Modulverbund aus `OW2S0SMSGUARD`, `TempReadingFilter`, `PWM`, `PWMR`,
+`PWMK` und `PID20`. Die ausführliche Beschreibung von Hydraulik,
+DS18B20-Anlegefühlern, OneWire/OW2S0SMSGUARD, I²C/MCP-Ventilansteuerung und
+einer möglichen Shelly/MQTT-Nachrüstung steht in der
 **[zentralen Dokumentation der Heizungsregelkette](HEIZUNGSREGELKETTE.md)**.
 
 Diese eigenständig installierbare FHEM-Erweiterung besteht aus drei
