@@ -42,6 +42,14 @@ worden sein. Ungültige Raumwerte, veraltete Rückläufe, eine Pulsdauer kleiner
 oder gleich der Filterverzögerung sowie eine nicht geladene Providerfunktion
 führen nachvollziehbar auf den unveränderten statischen Wert zurück.
 
+Der Lernstand von FBHKeepAlive wird nun je Provider in einer atomar ersetzten
+JSON-Datei gesichert und nach einem Neustart erst nach erneuter Validierung
+verwendet. Freeze, Unfreeze und Reset aktualisieren den persistenten Stand
+sofort. Pro anerkanntem Zyklus entsteht außerdem ein vollständiges
+`learningEvent_<Raum>` für getrennte EG-/OG-FileLogs. Die deutsch- und
+englischsprachige Hilfe beschreibt die optionale Drei-Modul-Konfiguration,
+die TempReadingFilter-Voraussetzung, Betriebsarten, Rückfall und Diagnose.
+
 # 1.1.0-153er – 2026-11-21
 
 Diese Version ergänzt `98_FBHKeepAlive.pm`. Das Modul lernt begrenzte

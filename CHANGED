@@ -4,6 +4,11 @@
 - Nur nach Beginn der aktiven Filterphase gemessene Rückläufe werden gelernt.
 - Ungültige Raum-/Rücklaufwerte, zu kurze Pulse und fehlende Providerfunktion
   führen mit eindeutiger Diagnose auf das statische maxOffTime zurück.
+- FBHKeepAlive speichert den individuellen Lernstand nach jedem gültigen
+  Zyklus atomar und lädt ihn nach einem Neustart validiert wieder ein.
+- Vollständige learningEvent-Readings ermöglichen getrennte EG-/OG-
+  Langzeitprotokolle; Hilfe und Installationsdokumentation erklären jetzt das
+  Zusammenspiel aller drei Module und die TempReadingFilter-Voraussetzung.
 
 2026-10-20 PWM/PWMR 1.0.1-153er
 - Modulköpfe um Herkunfts- und Änderungshinweise für die 153er-netz.de-
