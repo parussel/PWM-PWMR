@@ -1,7 +1,7 @@
 # PWM / PWMR – extended FHEM version
 
 This is a compatible, independently installable extension of FHEM’s original
-`94_PWM.pm` and `93_PWMR.pm` modules for pulse-width-modulated heating and
+`94_PWM.pm`, `93_PWMR.pm`, and the optional `98_FBHKeepAlive.pm` module for pulse-width-modulated heating and
 room control.
 
 It is the first public 153er-netz.de edition and **not** an official FHEM
@@ -13,6 +13,16 @@ selection, simpler window-contact configuration, a service valve override,
 safe D-buffer handling, and confirmed `readingsProxy` switching. A proxy
 command is acknowledged only after the reported `state` matches the requested
 state; a command’s empty return value alone is not confirmation.
+
+`FBHKeepAlive` provides bounded per-room maintenance-pulse spacing from
+filtered return temperatures. It learns only while the associated
+`TempReadingFilter` reports `active`, retains fixed pulse duration, starts
+from each room's existing static cadence, and automatically falls back to
+the unchanged PWMR `maxOffTime` settings whenever data or provider output is
+not usable. One generic instance is used per PWM group; an optional shared
+coordination group prevents overlapping dynamic maintenance pulses. Shadow,
+active, freeze, reset, diagnostics, and arbitrary outside-device/readings are
+supported. See the German README for configuration and rollback commands.
 
 For installation, updates and rollback, use the German
 [README](README.md). Its FHEM commands first exclude only the two official

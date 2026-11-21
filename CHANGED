@@ -9,3 +9,10 @@
 - Der readingsProxy-Schaltzustandsabgleich bestätigt Wechsel erst nach
   passender Rückmeldung des Readings state.
 - Die Moduldateien 93_PWMR.pm und 94_PWM.pm werden gemeinsam verteilt.
+2026-11-21 PWM/PWMR 1.1.0-153er
+- Neues optionales Modul 98_FBHKeepAlive.pm für dynamische, rücklaufbasierte
+  FBH-Erhaltungspulsabstände mit fester Mindestpulsdauer.
+- Shadow-/Aktivbetrieb, begrenztes Lernen, Diagnose, Freeze/Reset, generische
+  Mehrinstanzfähigkeit und gruppenweite Pulskoordination ergänzt.
+- 93_PWMR.pm um optionale Provider-/Rücklaufattribute mit unverändertem
+  statischem maxOffTime als automatischer Rückfallebene erweitert.

@@ -32,3 +32,16 @@ Regelparameter, Solltemperaturen, PWM-Taktung und vorhandene Sperren werden
 durch diesen Fix nicht geändert. Der Abgleich bestätigt ausschließlich den
 gemeldeten Softwarezustand, nicht die mechanische Ventilposition oder den
 tatsächlichen Durchfluss.
+# 1.1.0-153er – 2026-11-21
+
+Diese Version ergänzt `98_FBHKeepAlive.pm`. Das Modul lernt begrenzte
+Erhaltungspulsabstände aus hydraulisch gültigen, gefilterten
+Rücklauftemperaturen. Bestehende PWMR-Konfigurationen bleiben unverändert;
+die Funktion wird je Raum ausdrücklich über zwei Attribute zugeordnet und je
+Provider ausdrücklich aktiviert. Bei fehlenden, ungültigen oder veralteten
+Daten greift automatisch der bisherige statische `maxOffTime`-Wert.
+
+Empfohlener Ablauf: sichern, installieren, zunächst `mode shadow` prüfen,
+danach `mode active` setzen und Diagnosereadings beobachten. Die bekannte
+Installation verwendet wegen 600 Sekunden Filterverzögerung eine feste
+Mindestpulsdauer von 20 Minuten.

@@ -15,7 +15,7 @@ Moduldateien erhalten. Die Erweiterungen von 2026 werden von Frank Parussel /
 
 ## Funktionsumfang
 
-Die Dateien `93_PWMR.pm` und `94_PWM.pm` gehören zusammen und bleiben bei
+Die Dateien `93_PWMR.pm`, `94_PWM.pm` und `98_FBHKeepAlive.pm` gehören zusammen und bleiben bei
 jedem Update gemeinsam im Paket.
 
 - **Feinere Solltemperaturauswahl:** `tempStep` bietet wahlweise 0,5-K- oder
@@ -32,6 +32,42 @@ jedem Update gemeinsam im Paket.
   gilt ein Wechsel nur als bestätigt, wenn das Reading `state` den erwarteten
   Zustand meldet. Eine leere Befehlsrückgabe allein setzt weder `actorState`
   noch `lastswitch` als erfolgreich geschaltet.
+- **Dynamische FBH-Erhaltungspulse:** Das optionale Modul
+  `98_FBHKeepAlive.pm` lernt für jeden PWMR-Raum einen begrenzten Pulsabstand
+  aus echten, nach der Filterverzögerung gemessenen Rücklauftemperaturen.
+  Die Pulsdauer bleibt fest. Ohne Provider, im Shadow-Modus, bei fehlendem
+  Lernzyklus oder bei ungültigen/veralteten Sensordaten bleibt automatisch
+  der vorhandene statische `maxOffTime`-Wert wirksam.
+
+## Dynamische Erhaltungspulse einrichten
+
+Ein Provider wird pro PWM-Gruppe definiert. Außensensor und Reading sind
+frei wählbar; `none` ist zulässig:
+
+```text
+define FBHKeepAlive_EG FBHKeepAlive PWM_EG Temperatur_Aussen:realtemperature
+attr FBHKeepAlive_EG mode shadow
+attr FBHKeepAlive_EG minPulseDuration 20
+attr FBHKeepAlive_EG coordinationGroup FBH_Gemeinsam
+```
+
+Jeder gewünschte PWMR-Raum erhält den gefilterten Rücklauf und seinen
+Provider:
+
+```text
+attr EG_Bad_PWM floorReturn EG_Bad_RL_TF:realtemperature
+attr EG_Bad_PWM floorKeepAliveProvider FBHKeepAlive_EG
+```
+
+`shadow` berechnet und zeigt nur Diagnosen. Nach der Prüfung aktiviert
+`attr FBHKeepAlive_EG mode active` die dynamischen Abstände. Erfasst werden
+nur Messungen, bei denen der `TempReadingFilter` den Zustand `active` meldet;
+dessen reine Keepalive-Aktualisierungen im Ruhezustand werden nicht gelernt.
+Der erste Lernwert beginnt beim bereits vorhandenen statischen Raumwert und
+verursacht deshalb keinen sprunghaften Wechsel. `set ... freeze`, `unfreeze`,
+`reset` und `evaluate` unterstützen Diagnose und Service. Zwei Provider mit
+derselben `coordinationGroup` lassen höchstens einen fälligen dynamischen
+Erhaltungspuls gleichzeitig zu.
 
 Die Prüfung betrifft den **gemeldeten Softwarezustand**. Sie kann weder die
 mechanische Ventilstellung noch Durchfluss oder Raumtemperatur garantieren.
@@ -81,6 +117,7 @@ Die Vorschau muss genau diese Dateien nennen:
 ```text
 FHEM/93_PWMR.pm
 FHEM/94_PWM.pm
+FHEM/98_FBHKeepAlive.pm
 ```
 
 Danach installieren und FHEM neu starten:
@@ -110,6 +147,10 @@ attr -r global exclude_from_update fhem\.de.*:FHEM/93_PWMR\.pm
 ```text
 attr -r global exclude_from_update fhem\.de.*:FHEM/94_PWM\.pm
 ```
+
+`98_FBHKeepAlive.pm` besitzt kein offizielles gleichnamiges FHEM-Modul. Nach
+dem Zurückwechseln Definitionen/Attribute entfernen und die Datei erst danach
+manuell aus `FHEM/` löschen.
 
 ```text
 save
